@@ -45,12 +45,13 @@ class MovementType(Enum):
     """
     Prædefinerede bevægelsestyper med multi-class klassifikation
     """
-    REST = 0
-    HAND_GRIP = 1
-    ARM_RAISE = 2
-    FINGER_TAP = 3
-    FOOT_TAP = 4
-    HEAD_MOVEMENT = 5
+    REST = 0b0000            # 0
+    FLEXION = 0b0001         # 1
+    EXTENSION = 0b0010       # 2
+    RAISE = 0b0011           # 3
+    UNRAISE = 0b0100         # 4
+    SUPINATION = 0b0101      # 5
+    PRONATION = 0b0110       # 6
     
 # ============================================================
 # 3. MODEL KONFIGURATION
@@ -60,7 +61,7 @@ class ModelConfig:
     Konfigurationsindstillinger for bevægelsesintentions-modellen
     """
     # Signal Parametre
-    SAMPLING_RATE = 500  # Hz
+    SAMPLING_RATE = 256  # Hz
     TIME_STEPS = 1000
     
     # Bereitschaftspotential Vindue
@@ -135,11 +136,12 @@ class MovementDataLoader:
         if movement_distribution is None:
             movement_distribution = {
                 MovementType.REST: 0.3,
-                MovementType.HAND_GRIP: 0.2,
-                MovementType.ARM_RAISE: 0.2,
-                MovementType.FINGER_TAP: 0.1,
-                MovementType.FOOT_TAP: 0.1,
-                MovementType.HEAD_MOVEMENT: 0.1
+                MovementType.EXTENSION: 0.15,
+                MovementType.FLEXION: 0.15,
+                MovementType.RAISE: 0.1,
+                MovementType.UNRAISE: 0.1,
+                MovementType.SUPINATION: 0.1,
+                MovementType.PRONATION: 0.1
             }
         
         # Generer bevægelsesmærker
@@ -523,7 +525,7 @@ class MovementIntentionDetector:
         sampling_rate=ModelConfig.SAMPLING_RATE,
         eeg_channels=ModelConfig.EEG_CHANNELS,
         serial_port='/dev/ttyUSB0',  # Juster til din Arduino port
-        baud_rate=115200
+        baud_rate=57600
     ):
         """
         Initialisér bevægelsesintentions detektor
@@ -885,11 +887,12 @@ def main():
             num_samples=1000,
             movement_distribution={
                 MovementType.REST: 0.3,
-                MovementType.HAND_GRIP: 0.2,
-                MovementType.ARM_RAISE: 0.2,
-                MovementType.FINGER_TAP: 0.1,
-                MovementType.FOOT_TAP: 0.1,
-                MovementType.HEAD_MOVEMENT: 0.1
+                MovementType.EXTENSION: 0.15,
+                MovementType.FLEXION: 0.15,
+                MovementType.RAISE: 0.1,
+                MovementType.UNRAISE: 0.1,
+                MovementType.SUPINATION: 0.1,
+                MovementType.PRONATION: 0.1
             }
         )
         
@@ -904,7 +907,7 @@ def main():
         # Initialisér detektor med serial kommunikation
         detector = MovementIntentionDetector(
             serial_port='/dev/ttyUSB0',  # Juster til din Arduino port
-            baud_rate=115200
+            baud_rate=57600
         )
         
         # Vælg træningsmetode
@@ -962,11 +965,6 @@ if __name__ == "__main__":
 
 # Arduino-kode til reference
 """
-void setup() {
-  Serial.begin(115200);
-  pinMode(LED_BUILTIN, OUTPUT);
-}
-
 void loop() {
   if (Serial.available()) {
     int movement_type = Serial.parseInt();
@@ -976,19 +974,22 @@ void loop() {
       case 0:  // REST
         digitalWrite(LED_BUILTIN, LOW);
         break;
-      case 1:  // HAND_GRIP
+      case 1:  // EXTENSION
         digitalWrite(LED_BUILTIN, HIGH);
         break;
-      case 2:  // ARM_RAISE
+      case 2:  // FLEXION
         // Specifikke aktioner
         break;
-      case 3:  // FINGER_TAP
+      case 3:  // RAISE
         // Specifikke aktioner
         break;
-      case 4:  // FOOT_TAP
+      case 4:  // UNRAISE
         // Specifikke aktioner
         break;
-      case 5:  // HEAD_MOVEMENT
+      case 5:  // SUPINATION
+        // Specifikke aktioner
+        break;
+      case 6:  // PRONATION
         // Specifikke aktioner
         break;
     }
