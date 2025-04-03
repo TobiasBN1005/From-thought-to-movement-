@@ -5,6 +5,9 @@ Created on Wed Mar 19 12:06:14 2025
 
 @author: tobiasbendix
 """
+"""
+Første forsøg på en model
+"""
 
 #Fil: LeModel
 
