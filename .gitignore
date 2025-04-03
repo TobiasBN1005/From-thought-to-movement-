@@ -1,0 +1,21 @@
+# Ignorer STM32CubeIDE builds
+*.launch
+*.settings/
+.cproject
+.project
+.metadata/
+.ipch/
+*.log
+*.bak
+*.swp
+*.bin
+*.elf
+*.hex
+*.list
+*.map
+*.o
+*.d
+Debug/
+build/
+Release/
+.DS_Store
