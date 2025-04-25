@@ -524,7 +524,7 @@ class MovementIntentionDetector:
         self, 
         sampling_rate=ModelConfig.SAMPLING_RATE,
         eeg_channels=ModelConfig.EEG_CHANNELS,
-        serial_port='/dev/ttyUSB0',  # Juster til din Arduino port
+        serial_port='/dev/ttyUSB0',  # Juster til min Arduino port
         baud_rate=57600
     ):
         """
@@ -906,7 +906,7 @@ def main():
         
         # Initialisér detektor med serial kommunikation
         detector = MovementIntentionDetector(
-            serial_port='/dev/ttyUSB0',  # Juster til din Arduino port
+            serial_port='/dev/ttyUSB0',  # Juster til min Arduino port
             baud_rate=57600
         )
         
@@ -936,7 +936,7 @@ def main():
         # Kontinuerlig forudsigelse og afsendelse
         try:
             while True:
-                # Indlæs nye sensordata (erstat med din faktiske dataindsamling)
+                # Indlæs nye sensordata (erstat med min faktiske dataindsamling)
                 test_eeg = X_eeg[np.random.randint(len(X_eeg))]
                 test_emg = X_emg[np.random.randint(len(X_emg))]
                 test_imu = X_imu[np.random.randint(len(X_imu))]
