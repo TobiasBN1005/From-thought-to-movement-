@@ -1,0 +1,3 @@
+These files contain the original scripts and coding for the NucleoSTM3F303K8 board, with settings to measure from three active electrodes
+placed above the scalpe at C3, C4 and Cz. I've since changed the Nucleo board to a Teensy 4.1 board, meaning these files are no longer in use. 
+Furthermore, is the EEG-circuit replaced with professional equpiment sponsored by OpenBCI, to ensure more precise data acquistion.
