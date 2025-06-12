@@ -1,20 +1,20 @@
-// blå elektrode: aktiv
-// rød elektrode: reference
-// sort elektrode: ground
-// rød ledning: power
-// sort ledning: ground
-// hvid ledning: Raw EMG signal
-// gul ledning: Filtertet/enveloped EMG signal
+// blue electrode: active electrode
+// red electrode: reference
+// black electrode: ground
+// red wire: power
+// black wire: ground
+// white wite: Raw EMG signal
+// yellow ledning: Enveloped EMG signal
 
-const int EMG_PIN = A14;  // Gul ledning (filtered output)
+const int EMG_PIN = A14;  // yellow wire (filtered output)
 
 void setup() {
-  Serial.begin(115200);           // Hurtigere dataoverførsel
-  analogReadResolution(12);       // 12-bit opløsning (0–4095)
+  Serial.begin(115200);           // fast datatransfer
+  analogReadResolution(12);       // 12-bit resolution (0–4095)
 }
 
 void loop() {
   int emgRawValue = analogRead(EMG_PIN);
   Serial.println(emgRawValue);
-  delay(100);  // ~500 Hz sampling, egnet til EMG envelope
+  delay(100); 
 }
