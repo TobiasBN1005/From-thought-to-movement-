@@ -46,12 +46,12 @@ void loop() {
   // === LED control via serial ===
   if (Serial.available()) {
     char c = Serial.read();
-    if (c == '0') { digitalWrite(ledPin, HIGH); Serial.println("🔵 Modtog 0 → LED TÆNDES"); }
-    else if (c == '1') { digitalWrite(ledPin, LOW); Serial.println("⚪ Modtog 1 → LED SLUKKES"); }
-    else { Serial.print("❓ Ukendt kommando: "); Serial.println(c); }
+    if (c == '0') { digitalWrite(ledPin, HIGH); Serial.println("🔵 Recieved 0 → LED TURNED ON"); }
+    else if (c == '1') { digitalWrite(ledPin, LOW); Serial.println("⚪ Recieved 1 → LED TURNED OFF"); }
+    else { Serial.print("❓ Unknown command: "); Serial.println(c); }
   }
 
-  // === EMG måling ===
+  // === EMG-measureing ===
   unsigned long now = millis();
   if (now - lastEMGTime >= emgInterval) {
     lastEMGTime = now;
@@ -59,7 +59,7 @@ void loop() {
     Serial.print("EMG:"); Serial.println(emgValue);
   }
 
-  // === IMU målinger ===
+  // === IMU-measurements ===
   if (now - lastIMUTime >= imuInterval) {
     lastIMUTime = now;
 
@@ -86,7 +86,7 @@ void loop() {
   Serial.print(az3); Serial.print(",");
   Serial.print(gx3); Serial.print(",");
   Serial.print(gy3); Serial.print(",");
-  Serial.println(gz3);  // <== vigtigt: println kun én gang til sidst
+  Serial.println(gz3);
 
 
   }
