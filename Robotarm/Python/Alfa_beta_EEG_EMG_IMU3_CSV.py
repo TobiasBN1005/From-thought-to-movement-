@@ -5,7 +5,7 @@ import pyqtgraph as pg
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
 from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations, WindowOperations
 
-# === Konfiguration ===
+# === Configuration ===
 channel_names = ['Fp1','Fp2','C3','C4','P7','P8','O1','O2']
 alpha_channel_name = 'Fp1'
 band_definitions = {
@@ -27,7 +27,7 @@ with open(csv_path, mode='w', newline='') as f:
              [f'IMU{i}_{axis}' for i in range(1, 4) for axis in ['ax','ay','az','gx','gy','gz']]
     writer.writerow(header)
 
-# === Teensy Reader i baggrundstråd ===
+# === Teensy Reader ===
 class TeensyReader(threading.Thread):
     def __init__(self, port='/dev/cu.usbmodem170452301'):
         super().__init__(daemon=True)
@@ -51,11 +51,12 @@ class TeensyReader(threading.Thread):
             except:
                 continue
 
-# === EEG GUI + logging ===
+# === EEG GUI + alpha power + LED-control ===
 class EEGWindow(QtWidgets.QMainWindow):
-    def __init__(self, board_shim):
+    def __init__(self, board_shim, teensy_serial):
         super().__init__()
         self.board_shim = board_shim
+        self.teensy = teensy_serial
         self.setWindowTitle("EEG GUI")
         self.widget = pg.GraphicsLayoutWidget()
         self.setCentralWidget(self.widget)
@@ -66,6 +67,12 @@ class EEGWindow(QtWidgets.QMainWindow):
         self.sampling_rate = BoardShim.get_sampling_rate(board_shim.get_board_id())
         self.session_start = time.time()
         self.num_points = 4 * self.sampling_rate
+
+        #LED control parameters
+        self.alpha_threshold = 10.0
+        self.alpha_duration_required = 2.0
+        self.alpha_above_start_time = None
+        self.led_on = False
 
         for i, ch in enumerate(BoardShim.get_exg_channels(board_shim.get_board_id())):
             p = self.widget.addPlot(row=i, col=0)
@@ -95,6 +102,7 @@ class EEGWindow(QtWidgets.QMainWindow):
             with open(csv_path, mode='a', newline='') as f:
                 csv.writer(f).writerow([now, round(session_time, 3)] + eeg_vals + [emg] + imu)
 
+        # EEG plots
         for i, ch in enumerate(BoardShim.get_exg_channels(self.board_shim.get_board_id())):
             signal = data[ch]
             DataFilter.detrend(signal, DetrendOperations.CONSTANT.value)
@@ -102,15 +110,32 @@ class EEGWindow(QtWidgets.QMainWindow):
                                         FilterTypes.BUTTERWORTH_ZERO_PHASE.value, 0)
             self.curves[i].setData(signal.tolist())
 
+        # Alpha power
+        alpha_value = 0.0
         for count, ch in enumerate(BoardShim.get_exg_channels(self.board_shim.get_board_id())):
             if channel_names[count] == alpha_channel_name:
                 signal = data[ch]
                 if len(signal) >= 256:
                     psd = DataFilter.get_psd_welch(signal, 256, 128,
                                                    self.sampling_rate, WindowOperations.HANNING.value)
-                    for band, (low, high, _) in band_definitions.items():
-                        power = DataFilter.get_band_power(psd, low, high)
-                        self.band_vals[band].append(power)
+                    alpha_value = DataFilter.get_band_power(psd, 8.0, 13.0)
+
+        self.setWindowTitle(f"Alpha Power: {alpha_value:.2f} µV²/Hz")
+
+        # LED control
+        if alpha_value > self.alpha_threshold:
+            if self.alpha_above_start_time is None:
+                self.alpha_above_start_time = now
+            elif now - self.alpha_above_start_time >= self.alpha_duration_required and not self.led_on:
+                self.teensy.write(b'1')
+                self.led_on = True
+        else:
+            self.alpha_above_start_time = None
+            if self.led_on:
+                self.teensy.write(b'0')
+                self.led_on = False
+
+        # Band power plot
         self.band_timestamps.append(now)
         if len(self.band_timestamps) > self.sampling_rate * 5:
             self.band_timestamps.pop(0)
@@ -195,11 +220,16 @@ def main():
     board.prepare_session()
     board.start_stream()
 
-    teensy = TeensyReader()
-    teensy.start()
+    # Start Teensy-data collection
+    teensy_reader = TeensyReader()
+    teensy_reader.start()
+
+    # Open serial port to LED-control separately
+    teensy_serial = serial.Serial('/dev/cu.usbmodem170452301', 115200)
+    time.sleep(2)
 
     app = QtWidgets.QApplication(sys.argv)
-    eeg = EEGWindow(board); eeg.show()
+    eeg = EEGWindow(board, teensy_serial); eeg.show()
     emg = EMGWindow(); emg.show()
     imu = IMUWindow(); imu.show()
 
