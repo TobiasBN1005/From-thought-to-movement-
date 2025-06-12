@@ -1,12 +1,12 @@
 #include <Wire.h>
-#include "MPU6050_TBN.h"  // ← Brug dit eget bibliotek
+#include "MPU6050_TBN.h"  // My own MPU6050 library
 
 const int ledPin = 29;
 const int EMG_PIN = A14;
 
-MPU6050_TBN imu1(0x69, &Wire);    // IMU1 på adresse 0x69 via Wire
-MPU6050_TBN imu2(0x69, &Wire1);   // IMU2 på adresse 0x69 via Wire1
-MPU6050_TBN imu3(0x69, &Wire2);   // IMU3 på adresse 0x69 via Wire2
+MPU6050_TBN imu1(0x69, &Wire);    // IMU1 adress on 0x69 via Wire
+MPU6050_TBN imu2(0x69, &Wire1);   // IMU2 adress on 0x69 via Wire1
+MPU6050_TBN imu3(0x69, &Wire2);   // IMU3 adress on 0x69 via Wire2
 
 unsigned long lastEMGTime = 0;
 unsigned long lastIMUTime = 0;
@@ -17,9 +17,9 @@ void setup() {
   pinMode(ledPin, OUTPUT);
   Serial.begin(115200);
   analogReadResolution(12);
-  while (!Serial);  // Vent på USB
+  while (!Serial);  // Wait for USB
 
-  // === I2C initialisering ===
+  // === I2C initialisation ===
   Wire.begin();     // IMU1
   Wire1.begin();    // IMU2
   Wire2.begin();    // IMU3
@@ -29,21 +29,21 @@ void setup() {
   imu3.initialize();
 
   // === Test forbindelser ===
-  if (imu1.testConnection()) Serial.println("✅ IMU1 forbundet korrekt");
-  else Serial.println("❌ IMU1 fejlede");
+  if (imu1.testConnection()) Serial.println("✅ IMU1 Connected");
+  else Serial.println("❌ IMU1 not connected");
 
-  if (imu2.testConnection()) Serial.println("✅ IMU2 forbundet korrekt");
-  else Serial.println("❌ IMU2 fejlede");
+  if (imu2.testConnection()) Serial.println("✅ IMU2 connected");
+  else Serial.println("❌ IMU2 not connected");
 
-  if (imu3.testConnection()) Serial.println("✅ IMU3 forbundet korrekt");
-  else Serial.println("❌ IMU3 fejlede");
+  if (imu3.testConnection()) Serial.println("✅ IMU3 connected");
+  else Serial.println("❌ IMU3 not connected");
 
-  Serial.println("✅ Teensy klar og lytter på serial");
+  Serial.println("✅ Teensy ready");
   digitalWrite(ledPin, HIGH); delay(1000); digitalWrite(ledPin, LOW);
 }
 
 void loop() {
-  // === LED styring via seriel ===
+  // === LED control via serial ===
   if (Serial.available()) {
     char c = Serial.read();
     if (c == '0') { digitalWrite(ledPin, HIGH); Serial.println("🔵 Modtog 0 → LED TÆNDES"); }
