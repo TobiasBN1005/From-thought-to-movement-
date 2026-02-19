@@ -4,29 +4,29 @@ Servo myServo;
 bool servoActive = false;
 
 void setup() {
-  pinMode(29, OUTPUT);    // LED på pin 29
-  Serial.begin(9600);     // Serial til kommunikation med Python
-  myServo.attach(2);      // Servo tilsluttet pin 2
-  myServo.write(0);       // Startposition
+  pinMode(29, OUTPUT);    // LED on pin 29
+  Serial.begin(9600);     // Serial communication with Python
+  myServo.attach(2);      // Servo connected pin 2
+  myServo.write(0);       // Initial position
 }
 
 void loop() {
-  // === Læs serielt input ===
+  // reading serial input
   if (Serial.available()) {
     char c = Serial.read();
 
     if (c == '1') {
-      digitalWrite(29, HIGH);   // Tænd LED
-      servoActive = true;       // Aktiver servo
+      digitalWrite(29, HIGH);   // turn on LED
+      servoActive = true;       // Activate Servo
 
     } else if (c == '0') {
-      digitalWrite(12, LOW);    // Sluk LED
+      digitalWrite(12, LOW);    // Turn off led
       servoActive = false;      // Stop servo
-      myServo.write(0);         // Returnér til startposition (valgfrit)
+      myServo.write(0);         // Return to initial position
     }
   }
 
-  // === Kør servo hvis aktiv ===
+  // if active run
   if (servoActive) {
     for (int pos = 0; pos <= 90; pos += 2) {
       myServo.write(pos);
@@ -39,5 +39,5 @@ void loop() {
     }
   }
 
-  delay(10);  // Let pause for stabil loop
+  delay(10);  //small pause for smooth loop
 }
