@@ -9,7 +9,7 @@ from pyqtgraph.Qt import QtWidgets, QtCore
 channel_names = ['Fp1', 'Fp2', 'C3', 'C4', 'P7', 'Cz', 'O1', 'O2']
 alpha_channel_name = 'Fp1'
 
-# EEG-bånddefinitioner: (lav, høj, farve)
+# EEG-bands
 band_definitions = {
     'Delta': (0.5, 4.0, 'g'),
     'Theta': (4.0, 8.0, 'b'),
@@ -27,12 +27,12 @@ class Graph:
         self.window_size = 4
         self.num_points = self.window_size * self.sampling_rate
 
-        # Serial til Teensy (ret portnavn om nødvendigt)
+        #Serial to teensy (the path may depend on your system)
         self.teensy = serial.Serial('/dev/cu.usbmodem170452301', 9600)
-        time.sleep(2)  # Giv tid til at initialisere
+        time.sleep(2)  
 
-        self.alpha_threshold = 10
-        self.alpha_duration_required = 2.0  # sekunder
+        self.alpha_threshold = 10            #Alpha threshold, 10 is fine under relaxed setting, otherwise increase it
+        self.alpha_duration_required = 2.0  #Duration for your alpha it has to exceed before sending a signal
         self.alpha_above_start_time = None
         self.led_on = False
 
@@ -111,7 +111,7 @@ class Graph:
             except Exception as e:
                 print(f"Error processing channel {channel}: {e}")
 
-        # === Teensy LED kontrol ===
+        #Teensy
         alpha_value = band_powers.get('Alpha', 0.0)
         self.win.setWindowTitle(
             f"Alpha Power ({alpha_channel_name}): {alpha_value:.2f} µV²/Hz"
@@ -122,12 +122,12 @@ class Graph:
             if self.alpha_above_start_time is None:
                 self.alpha_above_start_time = current_time
             elif current_time - self.alpha_above_start_time >= self.alpha_duration_required and not self.led_on:
-                self.teensy.write(b'1')
+                self.teensy.write(b'1') #serial write 1 when above threshold
                 self.led_on = True
         else:
             self.alpha_above_start_time = None
             if self.led_on:
-                self.teensy.write(b'0')
+                self.teensy.write(b'0') #else serial write 0
                 self.led_on = False
 
         # === Opdater graf ===
@@ -162,17 +162,17 @@ def main():
     board = BoardShim(BoardIds.CYTON_BOARD, params)
 
     try:
-        print("👉 Forbereder session...")
+        print("Preparing session...")
         board.prepare_session()
         board.start_stream(450000, "")
-        print("🚀 Stream started.")
+        print("Stream started.")
         Graph(board)
     except Exception as e:
-        print(f"⚠️ Fejl under kørsel: {e}")
+        print(f"Error durring run time: {e}")
     finally:
         if board.is_prepared():
             board.release_session()
-            print("🔚 Session released.")
+            print(" Session released.")
 
 if __name__ == "__main__":
     main()
